@@ -136,7 +136,7 @@ php vendor/bin/phpunit
 php bin/composer.phar test
 ```
 
-GitHub Actions runs the suite on PHP 8.2 / 8.3 / 8.4 in a matrix.
+GitHub Actions runs the suite on PHP 8.2 / 8.3 / 8.4 / 8.5 in a matrix.
 
 ### Adding a new function under `src/`
 

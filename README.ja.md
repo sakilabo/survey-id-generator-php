@@ -136,7 +136,7 @@ php vendor/bin/phpunit
 php bin/composer.phar test
 ```
 
-GitHub Actions で PHP 8.2 / 8.3 / 8.4 のマトリックスで自動実行されます。
+GitHub Actions で PHP 8.2 / 8.3 / 8.4 / 8.5 のマトリックスで自動実行されます。
 
 ### 新しい関数を `src/` に追加するとき
 

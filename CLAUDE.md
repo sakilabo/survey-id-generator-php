@@ -72,7 +72,7 @@ composer test                  # = vendor/bin/phpunit
 vendor/bin/phpunit
 ```
 
-`tests/` 配下に PHPUnit のテストがあります。新機能を追加したら対応するテストも追加してください。GitHub Actions (`.github/workflows/test.yml`) で PHP 8.2 / 8.3 / 8.4 のマトリックスで自動実行されます。
+`tests/` 配下に PHPUnit のテストがあります。新機能を追加したら対応するテストも追加してください。GitHub Actions (`.github/workflows/test.yml`) で PHP 8.2 / 8.3 / 8.4 / 8.5 のマトリックスで自動実行されます。
 
 ## ファイル構成
 
