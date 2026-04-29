@@ -33,5 +33,5 @@ return [
 
     'date_format'                 => 'Y年n月j日',
 
-    'copyright'                   => '© 2026 Sakilabo Corporation Ltd. All rights reserved.',
+    'copyright'                   => '© 2026 株式会社さきラボ All rights reserved.',
 ];
