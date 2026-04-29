@@ -1,0 +1,31 @@
+{
+    "name": "sakilabo/survey-id-generator",
+    "description": "Survey ID generator that prevents typos and makes fraudulent responses easy to detect.",
+    "type": "project",
+    "license": "UPL-1.0",
+    "homepage": "https://github.com/sakilabo/survey-id-generator-php",
+    "support": {
+        "issues": "https://github.com/sakilabo/survey-id-generator-php/issues",
+        "source": "https://github.com/sakilabo/survey-id-generator-php"
+    },
+    "require": {
+        "php": ">=8.2",
+        "ext-pdo_sqlite": "*",
+        "ext-random": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.0"
+    },
+    "autoload": {
+        "files": [
+            "src/chars.php",
+            "src/sampling.php",
+            "src/repository.php",
+            "src/helpers.php",
+            "src/i18n.php"
+        ]
+    },
+    "scripts": {
+        "test": "@php vendor/bin/phpunit"
+    }
+}
