@@ -6,6 +6,9 @@
          cacheDirectory=".phpunit.cache"
          displayDetailsOnTestsThatTriggerWarnings="true"
          displayDetailsOnTestsThatTriggerErrors="true">
+    <php>
+        <ini name="date.timezone" value="Asia/Tokyo"/>
+    </php>
     <testsuites>
         <testsuite name="default">
             <directory>tests</directory>
