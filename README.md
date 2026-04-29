@@ -18,7 +18,7 @@ The goal is to enable **proper anonymous-or-identifiable surveys without making 
 - Fraudulent answers (impersonation, duplicate submissions, responses from outsiders) are detectable after collection
 - Simple input mistakes (e.g., mobile typos) are caught at form-submission time
 
-To my knowledge, no existing tool satisfies all of these *at once* (plus the constraints of "no login" and "drops onto a free form like Google Forms with self-hosted infra"). Adjacent tools cover parts of the problem — see [Related tools](#related-tools).
+I'm not aware of an existing tool that combines all of these (plus the constraints of "no login" and "drops onto a free form like Google Forms with self-hosted infra"). Adjacent tools cover parts of the problem — see [Related tools](#related-tools).
 
 This tool fills the gap. Combine the generated **ID Recognition Pattern** (a regex) and the **Distribution ID list** with a free form builder, and the resulting survey meets all of the above. **It runs on a local laptop or on shared hosting that costs a few dollars a month** — anywhere PHP 8.2+ runs. Whether the survey is identifiable or anonymous depends entirely on whether *you* keep a "person → ID" mapping; the same workflow handles both modes.
 
