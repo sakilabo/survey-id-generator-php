@@ -158,6 +158,15 @@ if (is_array($record)) {
             margin: 6px 0;
         }
 
+        ul, ol {
+            margin-top: 0;
+            margin-bottom: 0;
+        }
+        li {
+            margin-top: 6px;
+            margin-bottom: 6px;
+        }
+
         hr {
             border: none;
             border-bottom: 2px solid var(--page-gray);
@@ -200,10 +209,12 @@ if (is_array($record)) {
         <h1><?= e($T['h1']) ?></h1>
         <h2><?= e($T['whats_this_heading']) ?></h2>
         <p><?= $T['whats_this_body'] ?></p>
-        <h3><?= e($T['typo_prevention_heading']) ?></h3>
-        <p><?= $T['typo_prevention_body'] ?></p>
-        <h3><?= e($T['fraud_detection_heading']) ?></h3>
-        <p><?= $T['fraud_detection_body'] ?></p>
+        <p><?= $T['whats_this_value'] ?></p>
+        <ul>
+            <li><?= $T['typo_prevention_body'] ?></li>
+            <li><?= $T['fraud_detection_body'] ?></li>
+        </ul>
+        <p><?= $T['readme_link'] ?></p>
         <h2><?= e($T['usage_heading']) ?></h2>
         <p><?= $T['usage_intro'] ?></p>
         <ul>

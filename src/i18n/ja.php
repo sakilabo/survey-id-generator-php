@@ -7,13 +7,14 @@ return [
     'h1'                          => 'アンケート ID ジェネレーター',
 
     'whats_this_heading'          => 'これはなに？',
-    'whats_this_body'             => '誤入力や不正回答を防止するための「アンケート回答用 ID」を生成するツールです。',
+    'whats_this_body'             => '「アンケート ID」を生成するツールです。',
+    'whats_this_value'            => 'アンケート ID を利用すると、Google フォームやその他のオンラインフォームで、回答が簡単かつ信頼性の高いアンケートを実施することができます。',
 
-    'typo_prevention_heading'     => '誤入力防止',
-    'typo_prevention_body'        => 'スマホの縦画面ではキーの横間隔が特に狭く、隣接キーの押し間違いが起きやすくなっています。このツールで生成される ID は、<strong>同じ文字位置に「隣り合うキー」を使わない</strong>ように作られています。例えば、ある ID の 3 文字目に "f" が使われている場合、他のどの ID を見ても、3 文字目には "f" の隣にある "d" や "g" が登場しません。この仕組みによって、隣のキーを押し間違えた場合の入力ミスを検出できるようになっています。',
+    'typo_prevention_body'        => '生成される ID は、押し間違いが起きにくい構成になっています。ID 認識パターンをフォームに設定すれば、入力ミスはフォーム側で弾かれます。',
 
-    'fraud_detection_heading'     => '不正回答検出',
-    'fraud_detection_body'        => 'このツールで生成される ID は、適当な文字を打ち込んだくらいではアンケートの入力欄を通過できないように作られています。さらに、入力欄を通過できる文字列のうち、<strong>実際に配布される ID はおよそ 1% だけ</strong>です。パターンを解析してそれっぽい文字列を入力しても、99% は（配布されていない）不正な ID になります。この仕組みによって、アンケートの回答を「配布した ID の一覧」と照合すると、<strong>配っていない ID で送られてきた回答 = 不正の疑いがある回答</strong>を、かなり高い確率で見つけられるようになっています。',
+    'fraud_detection_body'        => 'アンケート ID は、入力可能な文字列のうち <strong>約 1%</strong> だけが配布されます。配布した ID の一覧と回答を照合すれば、不正な回答 (= 配布していない ID で送られた回答) を見つけられます。',
+
+    'readme_link'                 => '技術的な詳細については、GitHub にある <a href="https://github.com/sakilabo/survey-id-generator-php/blob/main/README.ja.md">README</a> をご確認ください。',
 
     'usage_heading'               => '使い方',
     'usage_intro'                 => '「生成」ボタンを押すと「ID 認識パターン」と「配布用 ID」が生成されます。',
@@ -21,7 +22,7 @@ return [
     'usage_step_ids'              => '「配布用 ID」は、回答者に配って入力してもらう ID の一覧です。あとで不正な回答を見つけるときに回答内容と照合する必要があるため、どこかに保存しておくか、ID 生成後のページの URL をブックマークしておいてください。',
 
     'generate_heading'            => 'ID 生成',
-    'id_length_label'             => 'ID 文字数 (有効 ID 数)：',
+    'id_length_label'             => 'ID 文字数 (ID 配布数)：',
     'complexity_label_format'     => '%d 文字 (%s件)',
     'generate_button'             => '生成',
 
