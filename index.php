@@ -20,13 +20,13 @@ const DB_PATH = __DIR__ . '/data.sqlite';
 const RETENTION_DAYS = 180;
 
 // ID-length presets (repeat = ID length, count^repeat = regex match space, limit = number to distribute).
-// count=8 leaves headroom under the adjacency-avoidance cap of 15, so each generation gets fresh char variety.
+// count=9 leaves headroom under the adjacency-avoidance cap of 15, so each generation gets fresh char variety.
 // limit aims for ~1% of the regex match space, rounded to a tidy number suitable as a distribution cap.
 $complexity_options = [
-    ['count' => 10, 'repeat' => 4, 'limit' => 100],
-    ['count' => 5,  'repeat' => 5, 'limit' => 500],
-    ['count' => 9,  'repeat' => 6, 'limit' => 5000], // count=9 to land on a clean count
-    ['count' => 8,  'repeat' => 7, 'limit' => 20000],
+    ['count' => 10, 'repeat' => 4, 'limit' => 100],   // 10 ^ 4 = 10,000
+    ['count' => 9,  'repeat' => 5, 'limit' => 500],   // 9 ^ 5 = 59,049
+    ['count' => 9,  'repeat' => 6, 'limit' => 5000],  // 9 ^ 6 = 531,441
+    ['count' => 8,  'repeat' => 7, 'limit' => 20000], // 8 ^ 7 = 2,097,152
 ];
 
 // URL path where this script lives (e.g. '/survey-id-generator').
@@ -116,6 +116,7 @@ if (is_array($record)) {
         :root {
             --page-gray: #a0a0a0;
         }
+
         html {
             margin: 0;
             padding: 0;
@@ -214,7 +215,7 @@ if (is_array($record)) {
             <label><?= e($T['id_length_label']) ?><select name="complexity">
                     <?php foreach ($complexity_options as $i => $opt):
                         $label = sprintf($T['complexity_label_format'], $opt['repeat'], number_format($opt['limit']));
-                        ?>
+                    ?>
                         <option value="<?= $i ?>" <?= $i === $selected_complexity ? 'selected' : '' ?>><?= e($label) ?></option>
                     <?php endforeach; ?>
                 </select>
