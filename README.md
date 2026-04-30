@@ -10,11 +10,11 @@ A PHP web tool that generates **survey IDs** — letting you run an online surve
 
 > The UI is bilingual (Japanese / English). Language is selected from the browser's `Accept-Language` header — Japanese for `ja*`, English for everything else. There is no manual switcher.
 
-> **Hosted instance**: <https://sakilabo.jp/survey-id-generator/> — use it as is. To self-host, see [Setup](#setup).
+> Hosted instance: <https://sakilabo.jp/survey-id-generator/> — use it as is. To self-host, see [Setup](#setup).
 
-## Use case
+## Overview
 
-Surveys where you want to **hand each recipient an individual "survey ID" ahead of time** — parent–teacher associations, neighborhood/community associations, alumni groups, internal company surveys, and so on. Scales from dozens to tens of thousands of recipients.
+With **Survey IDs**, you can run **simple, trustworthy surveys without user registration or email-based authentication**. The intended setup: hand each recipient an individual Survey ID, and have them enter it when responding. The tool covers everything from small gatherings like parent–teacher associations and neighborhood/community associations to information gathering at exhibitions and events — anywhere from dozens to tens of thousands of respondents.
 
 ### What a trustworthy survey requires
 
