@@ -33,9 +33,9 @@ function sample_ids(array $seeds, int $limit, \Random\Randomizer $rng): array
  * Build the regex pattern from the seed table.
  *
  * @param string[][] $seeds characters available at each position
- * @return string a regex of the form '(a|b|c)(d|e|f)'
+ * @return string a regex of the form '^[abc][def]$'
  */
 function build_regex_pattern(array $seeds): string
 {
-    return join('', array_map(fn($s) => '(' . join('|', $s) . ')', $seeds));
+    return '^' . join('', array_map(fn($s) => '[' . join('', $s) . ']', $seeds)) . '$';
 }

@@ -3,6 +3,7 @@
 /**
  * Character set used in IDs.
  * Visually confusing characters (0/o, 1/i/l, q/g, m/v) are excluded.
+ * Regex metacharacters are not supported (build_regex_pattern does not escape).
  */
 const DEFAULT_CHARS = '23456789abcdefghjknprstuwxyz';
 

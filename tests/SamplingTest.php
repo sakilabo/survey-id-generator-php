@@ -66,7 +66,7 @@ final class SamplingTest extends TestCase
         $ids = sample_ids($this->seeds, 100, $rng);
         $pattern = build_regex_pattern($this->seeds);
         foreach ($ids as $id) {
-            $this->assertMatchesRegularExpression('/^' . $pattern . '$/', $id);
+            $this->assertMatchesRegularExpression('/' . $pattern . '/', $id);
         }
     }
 
@@ -82,12 +82,12 @@ final class SamplingTest extends TestCase
     public function test_regex_pattern_format(): void
     {
         $seeds = [['a', 'b'], ['c', 'd']];
-        $this->assertSame('(a|b)(c|d)', build_regex_pattern($seeds));
+        $this->assertSame('^[ab][cd]$', build_regex_pattern($seeds));
     }
 
     public function test_regex_pattern_with_three_positions(): void
     {
         $seeds = [['x'], ['y', 'z'], ['1', '2', '3']];
-        $this->assertSame('(x)(y|z)(1|2|3)', build_regex_pattern($seeds));
+        $this->assertSame('^[x][yz][123]$', build_regex_pattern($seeds));
     }
 }
