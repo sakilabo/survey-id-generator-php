@@ -53,6 +53,10 @@ const KEYBOARD_NEIGHBORS = [
  * Pick the character set used at one position of an ID.
  * No two characters in the result are adjacent on the keyboard.
  *
+ * mt_rand (rather than \Random\Randomizer) is used here on purpose: this
+ * function aims for visual dispersion of characters across IDs, not
+ * cryptographic randomness, so its global state is not a concern.
+ *
  * @param int $count number of characters to pick (max 15 under the adjacency constraint)
  * @return string[]
  */
