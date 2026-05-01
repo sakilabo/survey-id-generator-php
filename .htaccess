@@ -1,21 +1,18 @@
-DirectoryIndex index.php index.html
-
-# Block direct access to the SQLite database files.
-<FilesMatch "\.(db|sqlite)(-(journal|wal|shm))?$">
-    Require all denied
-</FilesMatch>
-
-# Block direct access to development/config files.
-<FilesMatch "^(composer\.(json|lock)|phpunit\.xml(\.dist)?|\.gitignore)$">
-    Require all denied
-</FilesMatch>
+DirectoryIndex index.php
 
 RewriteEngine On
-
-# Block direct access to development directories (src, tests, vendor, .github).
-RewriteRule ^(src|tests|vendor|\.github)(/|$) - [F,L]
 
 # Internal rewrite of /{16-char hex} to ?id={16-char hex}.
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^([0-9a-f]{16})$ index.php?id=$1 [L,QSA]
+
+# Whitelist: allow the entry point and root-level image assets, then stop.
+RewriteRule ^index\.php$ - [L]
+RewriteRule ^[^/]+\.(jpe?g|png|gif|svg|webp|ico)$ - [L]
+
+# Anything not whitelisted above is forbidden. Covers subdirectories
+# (src/, tests/, vendor/, .vscode/, .git/, etc.) and root-level files
+# we don't want public (composer.json, README.md, CLAUDE.md, .htaccess,
+# data.sqlite, etc.).
+RewriteRule . - [F,L]
