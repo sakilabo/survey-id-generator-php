@@ -77,6 +77,7 @@ $all = [];
 $selected_complexity = 1;
 $current_url = null;
 $expires_at = null;
+$repeat = 0;
 
 if (is_array($record)) {
     $seeds = json_decode($record['seeds_json'], true);
@@ -97,6 +98,15 @@ if (is_array($record)) {
 
     $rng = new \Random\Randomizer(new \Random\Engine\Mt19937($rand_seed));
     $all = sample_ids($seeds, $limit, $rng);
+
+    // CSV download: emit the distribution IDs and exit before any HTML output.
+    if (isset($_GET['download'])) {
+        $filename = $T['download_filename_prefix'] . $record['id_key'] . '.csv';
+        header('Content-Type: text/csv; charset=UTF-8');
+        header("Content-Disposition: attachment; filename=\"{$record['id_key']}.csv\"; filename*=UTF-8''" . rawurlencode($filename));
+        echo implode("\n", $all);
+        exit;
+    }
 
     // URL of the current page (shown in the UI so it can be copied).
     $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
@@ -127,6 +137,36 @@ if (is_array($record)) {
             margin: 15px auto;
         }
 
+        #dist_info {
+            display: flex;
+            gap: 24px;
+        }
+
+        #dist_info > div:first-child {
+            width: 16em;
+        }
+
+        #validation_result {
+            display: none;
+        }
+
+        #validation_result h3 {
+            margin: 4px 0 8px;
+        }
+
+        #validation_result ul {
+            padding-left: 1.5em;
+        }
+
+        #validation_result li {
+            margin: 4px 0;
+            line-height: 1.2em;
+        }
+
+        #validation_result .invalid:not([data-value="0"]) {
+            color: #C00000;
+        }
+
         #footer {
             font-size: 14px;
             color: var(--page-gray);
@@ -152,19 +192,29 @@ if (is_array($record)) {
             margin: 14px 0 8px;
         }
 
+        img {
+            max-width: 100%;
+        }
+
         p {
             font-size: 16px;
             line-height: 1.5em;
             margin: 6px 0;
         }
 
-        ul, ol {
+        ul,
+        ol {
             margin-top: 0;
             margin-bottom: 0;
         }
+
         li {
             margin-top: 6px;
             margin-bottom: 6px;
+        }
+
+        li img {
+            margin-top: 4px;
         }
 
         hr {
@@ -183,7 +233,8 @@ if (is_array($record)) {
         button {
             font-family: monospace;
             font-size: 15px;
-            padding: 4px;
+            padding: 4px 5px;
+            width: fit-content;
         }
 
         input {
@@ -195,6 +246,10 @@ if (is_array($record)) {
             height: 10em;
         }
 
+        button {
+            min-width: 100px;
+        }
+
         button.delete {
             display: block;
             background-color: #ffc0c0;
@@ -202,25 +257,102 @@ if (is_array($record)) {
             margin: 20px 0 8px auto;
         }
     </style>
+    <script>
+        const T = <?= json_encode($T, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP) ?>;
+
+        // Once the page (incl. images) has settled, scroll to the bookmark heading
+        // so a deep-linked /{id_key} URL lands on the relevant section.
+        window.addEventListener('load', () => {
+            const bookmark = document.getElementById('bookmark');
+            if (bookmark) bookmark.scrollIntoView({ behavior: 'smooth' });
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const deleteForm = document.querySelector('form.delete-form');
+            if (deleteForm) {
+                deleteForm.addEventListener('submit', e => {
+                    if (!confirm(T.delete_confirm)) e.preventDefault();
+                });
+            }
+
+            const textarea = document.querySelector('textarea.validation');
+            if (!textarea) return;
+            const distribution = new Set(document.querySelector('textarea.distribution').value.split(/\r?\n/));
+            const pattern = /^[0-9a-z]{<?= $repeat ?>}$/;
+            textarea.addEventListener('paste', function(e) {
+                const pasted = (e.clipboardData || window.clipboardData).getData('text');
+                if (pasted.length === 0) return;
+                e.preventDefault();
+                const valid = pasted.split(/\r?\n/)
+                    .map(line => line.trim())
+                    .filter(line => pattern.test(line));
+                if (valid.length === 0) {
+                    alert(T.validation_paste_error);
+                    return;
+                }
+                // Insert/replace like a normal paste: at cursor when no selection,
+                // replacing the current selection otherwise. Trailing newline so the next
+                // paste/keystroke lands on a fresh line rather than appended to the last ID.
+                textarea.setRangeText(valid.join('\n') + '\n', textarea.selectionStart, textarea.selectionEnd, 'end');
+            });
+
+            const button = document.querySelector('.validation-button');
+            const result = document.getElementById('validation_result');
+            // Hide stale result whenever new IDs are pasted in.
+            textarea.addEventListener('paste', () => result.style.display = 'none');
+            button.addEventListener('click', function() {
+                const lines = textarea.value.split('\n').filter(line => line.length > 0);
+                const counts = new Map();
+                let invalid = 0;
+                let unique = 0;
+                for (const line of lines) {
+                    const prev = counts.get(line) || 0;
+                    counts.set(line, prev + 1);
+                    if (!distribution.has(line)) invalid++;
+                    else if (prev === 0) unique++;
+                }
+                let duplicates = 0;
+                for (const [id, count] of counts) {
+                    if (count > 1 && distribution.has(id)) duplicates += count;
+                }
+                const set = (selector, template, value) => {
+                    const el = result.querySelector(selector);
+                    el.textContent = template.replace('%s', value);
+                    el.dataset.value = value;
+                };
+                set('.total', T.validation_count_total, lines.length);
+                set('.unique', T.validation_count_unique, unique);
+                set('.duplicates', T.validation_count_duplicates, duplicates);
+                set('.invalid', T.validation_count_invalid, invalid);
+                result.style.display = 'block';
+            });
+        });
+    </script>
 </head>
 
 <body>
     <div id="content">
         <h1><?= e($T['h1']) ?></h1>
+        <div><img src="<?= $T['overview_image'] ?>" /></div>
         <h2><?= e($T['whats_this_heading']) ?></h2>
         <p><?= $T['whats_this_body'] ?></p>
-        <p><?= $T['whats_this_value'] ?></p>
         <ul>
-            <li><?= $T['typo_prevention_body'] ?></li>
-            <li><?= $T['fraud_detection_body'] ?></li>
+            <li><?= e($T['feature_typo_prevention']) ?></li>
+            <li><?= e($T['feature_fraud_detection']) ?></li>
         </ul>
         <p><?= $T['readme_link'] ?></p>
         <h2><?= e($T['usage_heading']) ?></h2>
         <p><?= $T['usage_intro'] ?></p>
         <ul>
             <li><?= $T['usage_step_pattern'] ?></li>
-            <li><?= $T['usage_step_ids'] ?></li>
+            <li>
+                <?= $T['usage_step_ids'] ?>
+                <ul>
+                    <li><?= $T['usage_tip_sheet_link'] ?></li>
+                </ul>
+            </li>
         </ul>
+        <hr />
         <h2><?= e($T['generate_heading']) ?></h2>
         <form method="post">
             <label><?= e($T['id_length_label']) ?><select name="complexity">
@@ -236,16 +368,43 @@ if (is_array($record)) {
         </form>
         <?php if (is_array($record)): ?>
             <hr />
-            <h2><?= e(sprintf($T['bookmark_url_heading_format'], $expires_at)) ?></h2>
-            <input type="text" readonly value="<?= e($current_url) ?>" onclick="this.select()" />
-            <form method="post" onsubmit="return confirm(<?= e(json_encode($T['delete_confirm'], JSON_UNESCAPED_UNICODE)) ?>);">
+            <h2 id="bookmark"><?= e(sprintf($T['bookmark_url_heading_format'], $expires_at)) ?></h2>
+            <input type="text" name="url" readonly value="<?= e($current_url) ?>" onclick="this.select()" />
+            <form method="post" class="delete-form">
                 <input type="hidden" name="id" value="<?= e($record['id_key']) ?>" />
                 <button class="delete" type="submit" name="delete" value="1"><?= e($T['delete_button']) ?></button>
             </form>
             <h2><?= e($T['pattern_heading']) ?></h2>
-            <input type="text" readonly value="<?= e($re_pattern) ?>" onclick="this.select()" />
-            <h2><?= e(sprintf($T['distribution_heading_format'], number_format(count($all)))) ?></h2>
-            <textarea readonly onclick="this.select()"><?= join("\n", $all) ?></textarea>
+            <input type="text" name="id_pattern" readonly value="<?= e($re_pattern) ?>" onclick="this.select()" />
+            <div id="dist_info">
+                <div>
+                    <h2><?= e(sprintf($T['distribution_heading_format'], number_format(count($all)))) ?></h2>
+                    <div style="display:flex;flex-direction:column;gap:10px;">
+                        <textarea class="distribution" readonly onclick="this.select()"><?= join("\n", $all) ?></textarea>
+                        <form class="download-form" method="get" action="<?= e($current_url) ?>">
+                            <button type="submit" name="download"><?= e($T['download_button']) ?></button>
+                        </form>
+                    </div>
+                </div>
+                <div>
+                    <h2><?= e($T['validation_heading']) ?></h2>
+                    <div style="display:flex;gap:20px;">
+                        <div style="display:flex;flex-direction:column;gap:10px;">
+                            <textarea class="validation" onclick="this.select()"></textarea>
+                            <button class="validation-button" type="button"><?= e($T['validation_button']) ?></button>
+                        </div>
+                        <div id="validation_result">
+                            <h3><?= e($T['validation_result_label']) ?></h3>
+                            <ul>
+                                <li class="total" data-value="0"></li>
+                                <li class="unique" data-value="0"></li>
+                                <li class="duplicates" data-value="0"></li>
+                                <li class="invalid" data-value="0"></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
         <?php endif; ?>
         <hr />
         <div id="footer">

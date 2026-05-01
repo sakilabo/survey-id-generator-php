@@ -6,20 +6,20 @@ return [
     'page_title'                  => 'Survey ID Generator',
     'h1'                          => 'Survey ID Generator',
 
+    'overview_image'              => 'overview.en.jpg',
+
     'whats_this_heading'          => 'What is this?',
-    'whats_this_body'             => 'A tool that generates "Survey IDs".',
-    'whats_this_value'            => 'Combine Survey IDs with Google Forms or any other online form to run surveys that are easy to answer and produce trustworthy results.',
-
-    'typo_prevention_body'        => 'Generated IDs are built to resist typos. Set the ID Recognition Pattern on your form, and input mistakes get caught by the form\'s validation.',
-
-    'fraud_detection_body'        => 'Only about <strong>1%</strong> of strings that match the pattern are actually distributed as IDs. Cross-check submitted answers against your distribution list, and you can flag fraudulent responses (= those sent with non-distributed IDs).',
+    'whats_this_body'             => 'A tool that generates "Survey IDs". Its key features:',
+    'feature_typo_prevention'     => 'Generates ID patterns that resist typos',
+    'feature_fraud_detection'     => 'Detects fraudulent responses via ID cross-check',
 
     'readme_link'                 => 'For technical details, see the <a href="https://github.com/sakilabo/survey-id-generator-php/blob/main/README.md">README on GitHub</a>.',
 
     'usage_heading'               => 'How to use',
-    'usage_intro'                 => 'Pressing "Generate" produces an "ID Recognition Pattern" and a "Distribution ID list".',
-    'usage_step_pattern'          => 'Set the "ID Recognition Pattern" as the validation on your survey\'s input field. In Google Forms: enable "Response validation" on the question, choose "Regular expression" and "Matches", and paste the pattern into the "Pattern" field.',
-    'usage_step_ids'              => 'The "Distribution ID list" is the set of IDs you hand out to respondents. You\'ll need it later to spot fraudulent answers, so save it somewhere — or bookmark this page\'s URL after generating.',
+    'usage_intro'                 => 'Choose an "ID length" and press "Generate". This produces an "ID Recognition Pattern" and a "Distribution ID list".',
+    'usage_step_pattern'          => 'Set the "ID Recognition Pattern" as the validation on your survey\'s input field. In Google Forms: open the "⋮" menu at the bottom-right of the question, enable "Response validation", then paste the "ID Recognition Pattern" into the "Pattern" field under "Regular expression".',
+    'usage_step_ids'              => 'The "Distribution ID list" is the set of IDs you hand out to respondents. Cross-check submitted responses against this list to detect fraudulent answers.',
+    'usage_tip_sheet_link'        => 'For Google Forms, we recommend <a href="https://support.google.com/docs/answer/2917686">linking responses to a spreadsheet</a> for easier handling.',
 
     'generate_heading'            => 'Generate IDs',
     'id_length_label'             => 'ID length (number of Distribution IDs):',
@@ -31,6 +31,17 @@ return [
     'delete_button'               => 'Delete server data',
     'pattern_heading'             => 'ID Recognition Pattern (regex for forms)',
     'distribution_heading_format' => 'Distribution IDs (%s)',
+    'download_button'             => 'Download',
+    'download_filename_prefix'    => 'Survey IDs ',
+
+    'validation_heading'          => 'Response ID Verification',
+    'validation_button'           => 'Verify',
+    'validation_paste_error'      => 'No IDs were recognized.',
+    'validation_result_label'     => 'Result',
+    'validation_count_total'      => 'Responses: %s',
+    'validation_count_unique'     => 'Unique IDs: %s',
+    'validation_count_duplicates' => 'Duplicates: %s',
+    'validation_count_invalid'    => 'Invalid: %s',
 
     'date_format'                 => 'F j, Y',
 
