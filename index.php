@@ -142,6 +142,7 @@ if (is_array($record)) {
 <html lang="<?= e($T['html_lang']) ?>">
 
 <head>
+    <meta charset="utf-8">
     <title><?= e($T['page_title']) ?></title>
     <link rel="alternate" hreflang="ja" href="<?= e($abs_ja_url) ?>">
     <link rel="alternate" hreflang="en" href="<?= e($abs_en_url) ?>">
@@ -372,7 +373,7 @@ if (is_array($record)) {
             <a href="?lang=<?= $lang === 'ja' ? 'en' : 'ja' ?>"><?= e($T['language_switch_label']) ?></a>
         </div>
         <h1><?= e($T['h1']) ?></h1>
-        <div><img src="<?= $T['overview_image'] ?>" /></div>
+        <div><img src="<?= $T['overview_image'] ?>"></div>
         <h2><?= e($T['whats_this_heading']) ?></h2>
         <p><?= $T['whats_this_body'] ?></p>
         <ul>
@@ -393,7 +394,7 @@ if (is_array($record)) {
                 </ul>
             </li>
         </ul>
-        <hr />
+        <hr>
         <h2><?= e($T['generate_heading']) ?></h2>
         <form method="post">
             <label><?= e($T['id_length_label']) ?><select name="complexity">
@@ -408,15 +409,15 @@ if (is_array($record)) {
             <button type="submit" name="generate" value="1"><?= e($T['generate_button']) ?></button>
         </form>
         <?php if (is_array($record)): ?>
-            <hr />
+            <hr>
             <h2 id="bookmark"><?= e(sprintf($T['bookmark_url_heading_format'], $expires_at)) ?></h2>
-            <input type="text" name="url" readonly value="<?= e($current_url) ?>" onclick="this.select()" />
+            <input type="text" name="url" readonly value="<?= e($current_url) ?>" onclick="this.select()">
             <form method="post" class="delete-form">
-                <input type="hidden" name="id" value="<?= e($record['id_key']) ?>" />
+                <input type="hidden" name="id" value="<?= e($record['id_key']) ?>">
                 <button class="delete" type="submit" name="delete" value="1"><?= e($T['delete_button']) ?></button>
             </form>
             <h2><?= e($T['pattern_heading']) ?></h2>
-            <input type="text" name="id_pattern" readonly value="<?= e($re_pattern) ?>" onclick="this.select()" />
+            <input type="text" name="id_pattern" readonly value="<?= e($re_pattern) ?>" onclick="this.select()">
             <div id="dist_info">
                 <div>
                     <h2><?= e(sprintf($T['distribution_heading_format'], number_format(count($all)))) ?></h2>
@@ -448,7 +449,7 @@ if (is_array($record)) {
                 </div>
             </div>
         <?php endif; ?>
-        <hr />
+        <hr>
         <div id="footer">
             <?= e($T['copyright']) ?>
         </div>
