@@ -22,6 +22,9 @@ $base_path = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
 
 session_start();
 
+// Avoid cache poisoning; rendering the 20,000-ID preset is ~10ms so caching gains nothing.
+header('Cache-Control: no-store');
+
 // Pick UI language: explicit ?lang= wins (and persists for the session),
 // falling back to the session value, then to Accept-Language.
 $lang_explicit = null;
@@ -68,6 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['generate'])) {
 }
 
 // On the "delete server data" button: remove the record and bounce to the top.
+// No CSRF token: no login state to protect, and the id_key URL is itself the capability.
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete']) && isset($_POST['id'])) {
     delete_generation($db, $_POST['id']);
     header('Location: ' . $base_path . '/');
@@ -122,7 +126,8 @@ if (is_array($record)) {
         $filename = $T['download_filename_prefix'] . $record['id_key'] . '.csv';
         header('Content-Type: text/csv; charset=UTF-8');
         header("Content-Disposition: attachment; filename=\"{$record['id_key']}.csv\"; filename*=UTF-8''" . rawurlencode($filename));
-        echo implode("\n", $all);
+        // CRLF per RFC 4180. ASCII-only IDs so no UTF-8 BOM needed.
+        echo implode("\r\n", $all);
         exit;
     }
 
@@ -133,6 +138,7 @@ if (is_array($record)) {
 }
 
 ?>
+<!DOCTYPE html>
 <html lang="<?= e($T['html_lang']) ?>">
 
 <head>
@@ -304,7 +310,10 @@ if (is_array($record)) {
 
             const textarea = document.querySelector('textarea.validation');
             if (!textarea) return;
+            // textarea.value is LF-normalised by the browser; /\r?\n/ here is just defensive for clipboard input below.
             const distribution = new Set(document.querySelector('textarea.distribution').value.split(/\r?\n/));
+            // Loose match (any alnum, not the reduced ID charset) so invalid/typo entries
+            // survive paste and reach the validation count instead of being silently dropped.
             const pattern = /^[0-9a-z]{<?= $repeat ?>}$/;
             textarea.addEventListener('paste', function(e) {
                 const pasted = (e.clipboardData || window.clipboardData).getData('text');
@@ -412,6 +421,7 @@ if (is_array($record)) {
                 <div>
                     <h2><?= e(sprintf($T['distribution_heading_format'], number_format(count($all)))) ?></h2>
                     <div style="display:flex;flex-direction:column;gap:10px;">
+                        <?php /* LF to match this file's line endings; browser normalises textarea.value to LF anyway. CSV download uses CRLF separately. */ ?>
                         <textarea class="distribution" readonly onclick="this.select()"><?= join("\n", $all) ?></textarea>
                         <form class="download-form" method="get" action="<?= e($current_url) ?>">
                             <button type="submit" name="download"><?= e($T['download_button']) ?></button>
