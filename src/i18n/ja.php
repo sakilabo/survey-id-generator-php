@@ -3,15 +3,17 @@
 return [
     'html_lang'                   => 'ja',
 
-    'page_title'                  => 'アンケート ID ジェネレーター',
+    'page_title'                  => 'ログインに代わる匿名IDを生成 - アンケートIDジェネレーター',
     'h1'                          => 'アンケート ID ジェネレーター',
 
     'overview_image'              => 'overview.ja.jpg',
 
     'whats_this_heading'          => 'これはなに？',
-    'whats_this_body'             => '「アンケート ID」を生成するツールです。以下のような特徴があります。',
+    'whats_this_body'             => '「アンケート ID」を生成するツールです。「アンケート ID」を利用すると、センシティブな研究、企業や学校での内部調査、自治体や PTA の意向調査など、匿名性と信頼性を両立する必要のあるアンケートを実施することができます。',
     'feature_typo_prevention'     => '入力ミスが発生しにくい ID パターンを生成',
-    'feature_fraud_detection'     => 'ID 照合で不正回答を検出',
+    'feature_anonymous'           => 'メールアドレス不要、完全に匿名のアンケートを実施可能',
+    'feature_no_login'            => 'ログインなし、ユーザー認証なし、ITが苦手な人にも対応可能',
+    'feature_fraud_detection'     => 'ID 照合で重複や不正回答を検出、信頼性の高いアンケート集計が可能',
 
     'readme_link'                 => '技術的な詳細については、GitHub にある <a href="https://github.com/sakilabo/survey-id-generator-php/blob/main/README.ja.md">README</a> をご確認ください。',
 
@@ -44,6 +46,8 @@ return [
     'validation_count_invalid'    => '不正: %s件',
 
     'date_format'                 => 'Y年n月j日',
+
+    'language_switch_label'       => 'English',
 
     'copyright'                   => '© 2026 株式会社さきラボ All rights reserved.',
 ];

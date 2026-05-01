@@ -32,35 +32,72 @@ final class I18nTest extends TestCase
         $this->assertSame('ja', detect_language());
     }
 
-    public function test_falls_back_to_english_when_primary_is_other(): void
+    public function test_returns_english_when_primary_is_english(): void
     {
         $_SERVER['HTTP_ACCEPT_LANGUAGE'] = 'en-US,en;q=0.9';
         $this->assertSame('en', detect_language());
     }
 
-    public function test_falls_back_to_english_when_japanese_is_secondary(): void
+    public function test_returns_english_when_english_outranks_japanese(): void
     {
-        // Per the agreed simple rule: only the first tag matters.
         $_SERVER['HTTP_ACCEPT_LANGUAGE'] = 'en-US,ja;q=0.5';
         $this->assertSame('en', detect_language());
     }
 
-    public function test_falls_back_to_english_when_header_missing(): void
+    public function test_returns_japanese_when_japanese_outranks_english(): void
     {
-        unset($_SERVER['HTTP_ACCEPT_LANGUAGE']);
-        $this->assertSame('en', detect_language());
+        $_SERVER['HTTP_ACCEPT_LANGUAGE'] = 'ja,en;q=0.5';
+        $this->assertSame('ja', detect_language());
     }
 
-    public function test_falls_back_to_english_when_header_empty(): void
+    public function test_returns_japanese_on_q_value_tie(): void
+    {
+        // Ties go to ja so that '/' is indexed as the Japanese version.
+        $_SERVER['HTTP_ACCEPT_LANGUAGE'] = 'en;q=0.5,ja;q=0.5';
+        $this->assertSame('ja', detect_language());
+    }
+
+    public function test_defaults_to_japanese_when_header_missing(): void
+    {
+        // Common case for crawlers (Googlebot's default crawl) — keeps '/' indexed as Japanese.
+        unset($_SERVER['HTTP_ACCEPT_LANGUAGE']);
+        $this->assertSame('ja', detect_language());
+    }
+
+    public function test_defaults_to_japanese_when_header_empty(): void
     {
         $_SERVER['HTTP_ACCEPT_LANGUAGE'] = '';
-        $this->assertSame('en', detect_language());
+        $this->assertSame('ja', detect_language());
     }
 
-    public function test_handles_unknown_language(): void
+    public function test_defaults_to_japanese_when_unknown_language(): void
     {
+        // No "en" preference at all → fall through to the Japanese default.
         $_SERVER['HTTP_ACCEPT_LANGUAGE'] = 'fr-FR,fr;q=0.9';
-        $this->assertSame('en', detect_language());
+        $this->assertSame('ja', detect_language());
+    }
+
+    public function test_explicit_override_takes_precedence(): void
+    {
+        $_SERVER['HTTP_ACCEPT_LANGUAGE'] = 'en-US,en;q=0.9';
+        $this->assertSame('ja', detect_language('ja'));
+
+        $_SERVER['HTTP_ACCEPT_LANGUAGE'] = 'ja';
+        $this->assertSame('en', detect_language('en'));
+    }
+
+    public function test_invalid_explicit_override_is_ignored(): void
+    {
+        $_SERVER['HTTP_ACCEPT_LANGUAGE'] = 'ja';
+        $this->assertSame('ja', detect_language('fr'));
+        $this->assertSame('ja', detect_language(''));
+    }
+
+    public function test_picks_highest_q_value_across_multiple_japanese_entries(): void
+    {
+        // ja-JP at q=1.0 should outweigh en-US at q=0.9.
+        $_SERVER['HTTP_ACCEPT_LANGUAGE'] = 'fr;q=0.3,en-US;q=0.9,ja-JP,ja;q=0.8';
+        $this->assertSame('ja', detect_language());
     }
 
     public function test_translations_have_identical_keys(): void

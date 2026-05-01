@@ -10,14 +10,29 @@ if (PHP_VERSION_ID < 80200) {
 
 require __DIR__ . '/vendor/autoload.php';
 
-// Pick the UI language from the browser's Accept-Language header (ja or en).
-$T = load_translations(detect_language());
-
 // SQLite DB location
 const DB_PATH = __DIR__ . '/data.sqlite';
 
 // How long to keep generation records (days)
 const RETENTION_DAYS = 180;
+
+// URL path where this script lives (e.g. '/survey-id-generator').
+// Combined with the .htaccess RewriteRule to produce /{id_key}-style URLs.
+$base_path = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
+
+session_start();
+
+// Pick UI language: explicit ?lang= wins (and persists for the session),
+// falling back to the session value, then to Accept-Language.
+$lang_explicit = null;
+if (isset($_GET['lang']) && in_array($_GET['lang'], ['ja', 'en'], true)) {
+    $lang_explicit = $_GET['lang'];
+    $_SESSION['lang'] = $lang_explicit;
+} elseif (isset($_SESSION['lang']) && in_array($_SESSION['lang'], ['ja', 'en'], true)) {
+    $lang_explicit = $_SESSION['lang'];
+}
+$lang = detect_language($lang_explicit);
+$T = load_translations($lang);
 
 // ID-length presets (repeat = ID length, count^repeat = regex match space, limit = number to distribute).
 // count=9 leaves headroom under the adjacency-avoidance cap of 15, so each generation gets fresh char variety.
@@ -28,10 +43,6 @@ $complexity_options = [
     ['count' => 9,  'repeat' => 6, 'limit' => 5000],  // 9 ^ 6 = 531,441
     ['count' => 8,  'repeat' => 7, 'limit' => 20000], // 8 ^ 7 = 2,097,152
 ];
-
-// URL path where this script lives (e.g. '/survey-id-generator').
-// Combined with the .htaccess RewriteRule to produce /{id_key}-style URLs.
-$base_path = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
 
 $db = open_db(DB_PATH);
 purge_expired($db, RETENTION_DAYS);
@@ -79,6 +90,13 @@ $current_url = null;
 $expires_at = null;
 $repeat = 0;
 
+// Absolute URL of the current page (sans query) — used for hreflang tags and,
+// on bookmark pages, displayed in the copy-to-clipboard field. Site is HTTPS-only.
+$host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+$page_path = $base_path . '/' . (is_array($record) ? $record['id_key'] : '');
+$abs_ja_url = 'https://' . $host . $page_path;
+$abs_en_url = $abs_ja_url . '?lang=en';
+
 if (is_array($record)) {
     $seeds = json_decode($record['seeds_json'], true);
     $count = (int)$record['char_count'];
@@ -108,10 +126,7 @@ if (is_array($record)) {
         exit;
     }
 
-    // URL of the current page (shown in the UI so it can be copied).
-    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
-    $current_url = $scheme . '://' . $host . $base_path . '/' . $record['id_key'];
+    $current_url = $abs_ja_url;
 
     // Expiration date (created_at + RETENTION_DAYS), localised.
     $expires_at = format_expiration_date($record['created_at'], RETENTION_DAYS, $T['date_format']);
@@ -122,6 +137,9 @@ if (is_array($record)) {
 
 <head>
     <title><?= e($T['page_title']) ?></title>
+    <link rel="alternate" hreflang="ja" href="<?= e($abs_ja_url) ?>">
+    <link rel="alternate" hreflang="en" href="<?= e($abs_en_url) ?>">
+    <link rel="alternate" hreflang="x-default" href="<?= e($abs_ja_url) ?>">
     <style>
         :root {
             --page-gray: #a0a0a0;
@@ -135,6 +153,13 @@ if (is_array($record)) {
         #content {
             width: 960px;
             margin: 15px auto;
+            position: relative;
+        }
+
+        #lang_switch {
+            position: absolute;
+            top: 4px;
+            right: 10px;
         }
 
         #dist_info {
@@ -142,7 +167,7 @@ if (is_array($record)) {
             gap: 24px;
         }
 
-        #dist_info > div:first-child {
+        #dist_info>div:first-child {
             width: 16em;
         }
 
@@ -264,7 +289,9 @@ if (is_array($record)) {
         // so a deep-linked /{id_key} URL lands on the relevant section.
         window.addEventListener('load', () => {
             const bookmark = document.getElementById('bookmark');
-            if (bookmark) bookmark.scrollIntoView({ behavior: 'smooth' });
+            if (bookmark) bookmark.scrollIntoView({
+                behavior: 'smooth'
+            });
         });
 
         document.addEventListener('DOMContentLoaded', function() {
@@ -332,12 +359,17 @@ if (is_array($record)) {
 
 <body>
     <div id="content">
+        <div id="lang_switch">
+            <a href="?lang=<?= $lang === 'ja' ? 'en' : 'ja' ?>"><?= e($T['language_switch_label']) ?></a>
+        </div>
         <h1><?= e($T['h1']) ?></h1>
         <div><img src="<?= $T['overview_image'] ?>" /></div>
         <h2><?= e($T['whats_this_heading']) ?></h2>
         <p><?= $T['whats_this_body'] ?></p>
         <ul>
             <li><?= e($T['feature_typo_prevention']) ?></li>
+            <li><?= e($T['feature_anonymous']) ?></li>
+            <li><?= e($T['feature_no_login']) ?></li>
             <li><?= e($T['feature_fraud_detection']) ?></li>
         </ul>
         <p><?= $T['readme_link'] ?></p>

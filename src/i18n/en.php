@@ -3,15 +3,17 @@
 return [
     'html_lang'                   => 'en',
 
-    'page_title'                  => 'Survey ID Generator',
+    'page_title'                  => 'Anonymous IDs in Place of Login — Survey ID Generator',
     'h1'                          => 'Survey ID Generator',
 
     'overview_image'              => 'overview.en.jpg',
 
     'whats_this_heading'          => 'What is this?',
-    'whats_this_body'             => 'A tool that generates "Survey IDs". Its key features:',
+    'whats_this_body'             => 'A tool that generates "Survey IDs". Survey IDs let you run surveys that require both anonymity and reliability at once — sensitive research, internal surveys at companies or schools, and consultations conducted by local governments or religious congregations.',
     'feature_typo_prevention'     => 'Generates ID patterns that resist typos',
-    'feature_fraud_detection'     => 'Detects fraudulent responses via ID cross-check',
+    'feature_anonymous'           => 'No email address required — fully anonymous surveys',
+    'feature_no_login'            => 'No login or user authentication — accessible even to non-technical respondents',
+    'feature_fraud_detection'     => 'Detects duplicates and fraudulent responses via ID cross-check',
 
     'readme_link'                 => 'For technical details, see the <a href="https://github.com/sakilabo/survey-id-generator-php/blob/main/README.md">README on GitHub</a>.',
 
@@ -44,6 +46,8 @@ return [
     'validation_count_invalid'    => 'Invalid: %s',
 
     'date_format'                 => 'F j, Y',
+
+    'language_switch_label'       => '日本語',
 
     'copyright'                   => '© 2026 Sakilabo Corporation Ltd. All rights reserved.',
 ];
