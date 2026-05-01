@@ -20,21 +20,25 @@ const RETENTION_DAYS = 180;
 // Combined with the .htaccess RewriteRule to produce /{id_key}-style URLs.
 $base_path = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
 
-session_start();
-
 // Avoid cache poisoning; rendering the 20,000-ID preset is ~10ms so caching gains nothing.
 header('Cache-Control: no-store');
 
-// Pick UI language: explicit ?lang= wins (and persists for the session),
-// falling back to the session value, then to Accept-Language.
-$lang_explicit = null;
-if (isset($_GET['lang']) && in_array($_GET['lang'], ['ja', 'en'], true)) {
-    $lang_explicit = $_GET['lang'];
-    $_SESSION['lang'] = $lang_explicit;
-} elseif (isset($_SESSION['lang']) && in_array($_SESSION['lang'], ['ja', 'en'], true)) {
-    $lang_explicit = $_SESSION['lang'];
+$lang = detect_language($_GET['lang'] ?? null);
+$lang_suffix = lang_pick($lang, '?lang=en', '');
+
+// Canonicalize URL: strip `?lang=ja` / invalid values, add `?lang=en` for EN.
+// Other query params (e.g. `download`) are preserved.
+$canonical_lang = lang_pick($lang, 'en', null);
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && ($_GET['lang'] ?? null) !== $canonical_lang) {
+    $other = $_GET;
+    unset($other['lang'], $other['id']);
+    if ($canonical_lang !== null) {
+        $other = ['lang' => $canonical_lang] + $other;
+    }
+    $query = $other ? '?' . http_build_query($other) : '';
+    header('Location: ' . $base_path . '/' . ($_GET['id'] ?? '') . $query);
+    exit;
 }
-$lang = detect_language($lang_explicit);
 $T = load_translations($lang);
 
 // ID-length presets (repeat = ID length, count^repeat = regex match space, limit = number to distribute).
@@ -66,7 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['generate'])) {
     save_generation($db, $id_key, $cfg['count'], $cfg['repeat'], $cfg['limit'], $rand_seed, $seeds);
 
     // Post/Redirect/Get: redirect after POST so reloads don't regenerate.
-    header('Location: ' . $base_path . '/' . $id_key);
+    header('Location: ' . $base_path . '/' . $id_key . $lang_suffix);
     exit;
 }
 
@@ -74,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['generate'])) {
 // No CSRF token: no login state to protect, and the id_key URL is itself the capability.
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete']) && isset($_POST['id'])) {
     delete_generation($db, $_POST['id']);
-    header('Location: ' . $base_path . '/');
+    header('Location: ' . $base_path . '/' . $lang_suffix);
     exit;
 }
 
@@ -83,23 +87,26 @@ $record = isset($_GET['id']) ? fetch_generation($db, $_GET['id']) : null;
 
 // Unknown id: redirect to the top page.
 if ($record === false) {
-    header('Location: ' . $base_path . '/');
+    header('Location: ' . $base_path . '/' . $lang_suffix);
     exit;
 }
 
 $re_pattern = null;
-$all = [];
+$distribution_ids = [];
 $selected_complexity = 1;
-$current_url = null;
 $expires_at = null;
 $repeat = 0;
 
-// Absolute URL of the current page (sans query) — used for hreflang tags and,
-// on bookmark pages, displayed in the copy-to-clipboard field. Site is HTTPS-only.
 $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
 $page_path = $base_path . '/' . (is_array($record) ? $record['id_key'] : '');
-$abs_ja_url = 'https://' . $host . $page_path;
-$abs_en_url = $abs_ja_url . '?lang=en';
+$abs_url = 'https://' . $host . $page_path;
+$abs_en_url = $abs_url . '?lang=en';
+
+// OGP / Twitter Card. Bookmark pages omit these (HTML below) so the
+// capability URL doesn't render as an attractive share preview.
+$og_url = 'https://' . $host . $base_path . '/' . $lang_suffix;
+$og_locale = lang_pick($lang, 'en_US', 'ja_JP');
+$og_image_url = 'https://' . $host . $base_path . '/' . $T['overview_image'];
 
 if (is_array($record)) {
     $seeds = json_decode($record['seeds_json'], true);
@@ -119,7 +126,7 @@ if (is_array($record)) {
     $re_pattern = build_regex_pattern($seeds);
 
     $rng = new \Random\Randomizer(new \Random\Engine\Mt19937($rand_seed));
-    $all = sample_ids($seeds, $limit, $rng);
+    $distribution_ids = sample_ids($seeds, $limit, $rng);
 
     // CSV download: emit the distribution IDs and exit before any HTML output.
     if (isset($_GET['download'])) {
@@ -127,11 +134,9 @@ if (is_array($record)) {
         header('Content-Type: text/csv; charset=UTF-8');
         header("Content-Disposition: attachment; filename=\"{$record['id_key']}.csv\"; filename*=UTF-8''" . rawurlencode($filename));
         // CRLF per RFC 4180. ASCII-only IDs so no UTF-8 BOM needed.
-        echo implode("\r\n", $all);
+        echo implode("\r\n", $distribution_ids);
         exit;
     }
-
-    $current_url = $abs_ja_url;
 
     // Expiration date (created_at + RETENTION_DAYS), localised.
     $expires_at = format_expiration_date($record['created_at'], RETENTION_DAYS, $T['date_format']);
@@ -144,9 +149,20 @@ if (is_array($record)) {
 <head>
     <meta charset="utf-8">
     <title><?= e($T['page_title']) ?></title>
-    <link rel="alternate" hreflang="ja" href="<?= e($abs_ja_url) ?>">
-    <link rel="alternate" hreflang="en" href="<?= e($abs_en_url) ?>">
-    <link rel="alternate" hreflang="x-default" href="<?= e($abs_ja_url) ?>">
+    <?php if (is_array($record)): ?>
+        <meta name="robots" content="noindex">
+    <?php else: ?>
+        <link rel="alternate" hreflang="ja" href="<?= e($abs_url) ?>">
+        <link rel="alternate" hreflang="en" href="<?= e($abs_en_url) ?>">
+        <link rel="alternate" hreflang="x-default" href="<?= e($abs_url) ?>">
+        <meta property="og:type" content="website">
+        <meta property="og:url" content="<?= e($og_url) ?>">
+        <meta property="og:title" content="<?= e($T['page_title']) ?>">
+        <meta property="og:description" content="<?= e($T['whats_this_body']) ?>">
+        <meta property="og:image" content="<?= e($og_image_url) ?>">
+        <meta property="og:locale" content="<?= e($og_locale) ?>">
+        <meta name="twitter:card" content="summary_large_image">
+    <?php endif; ?>
     <style>
         :root {
             --page-gray: #a0a0a0;
@@ -370,7 +386,7 @@ if (is_array($record)) {
 <body>
     <div id="content">
         <div id="lang_switch">
-            <a href="?lang=<?= $lang === 'ja' ? 'en' : 'ja' ?>"><?= e($T['language_switch_label']) ?></a>
+            <a href="<?= e(lang_pick($lang, $abs_url, $abs_en_url)) ?>"><?= e($T['language_switch_label']) ?></a>
         </div>
         <h1><?= e($T['h1']) ?></h1>
         <div><img src="<?= $T['overview_image'] ?>"></div>
@@ -411,7 +427,7 @@ if (is_array($record)) {
         <?php if (is_array($record)): ?>
             <hr>
             <h2 id="bookmark"><?= e(sprintf($T['bookmark_url_heading_format'], $expires_at)) ?></h2>
-            <input type="text" name="url" readonly value="<?= e($current_url) ?>" onclick="this.select()">
+            <input type="text" name="url" readonly value="<?= e(lang_pick($lang, $abs_en_url, $abs_url)) ?>" onclick="this.select()">
             <form method="post" class="delete-form">
                 <input type="hidden" name="id" value="<?= e($record['id_key']) ?>">
                 <button class="delete" type="submit" name="delete" value="1"><?= e($T['delete_button']) ?></button>
@@ -420,11 +436,15 @@ if (is_array($record)) {
             <input type="text" name="id_pattern" readonly value="<?= e($re_pattern) ?>" onclick="this.select()">
             <div id="dist_info">
                 <div>
-                    <h2><?= e(sprintf($T['distribution_heading_format'], number_format(count($all)))) ?></h2>
+                    <h2><?= e(sprintf($T['distribution_heading_format'], number_format(count($distribution_ids)))) ?></h2>
                     <div style="display:flex;flex-direction:column;gap:10px;">
                         <?php /* LF to match this file's line endings; browser normalises textarea.value to LF anyway. CSV download uses CRLF separately. */ ?>
-                        <textarea class="distribution" readonly onclick="this.select()"><?= join("\n", $all) ?></textarea>
-                        <form class="download-form" method="get" action="<?= e($current_url) ?>">
+                        <textarea class="distribution" readonly onclick="this.select()"><?= join("\n", $distribution_ids) ?></textarea>
+                        <form class="download-form" method="get" action="<?= e($abs_url) ?>">
+                            <?php
+                                // Browsers strip the action's query string on GET, so re-attach lang for EN.
+                                echo lang_pick($lang, '<input type="hidden" name="lang" value="en">', '');
+                            ?>
                             <button type="submit" name="download"><?= e($T['download_button']) ?></button>
                         </form>
                     </div>

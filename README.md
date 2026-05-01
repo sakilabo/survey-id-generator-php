@@ -8,7 +8,7 @@
 
 A PHP web tool that generates **survey IDs** — letting you run an online survey that is **easy to answer** and produces **results you can trust**. Pair the generated IDs with the regex-validation feature in Google Forms (or any form builder that supports regex validation).
 
-> The UI is bilingual (Japanese / English). Language is selected from the browser's `Accept-Language` header — Japanese for `ja*`, English for everything else. There is no manual switcher.
+> The UI is bilingual (Japanese / English) and defaults to Japanese. `Accept-Language` is intentionally ignored to keep the language consistent when links are shared on social media. Switch to English with `?lang=en` or the language link in the upper-right.
 
 > Hosted instance: <https://sakilabo.jp/survey-id-generator/> — use it as is. To self-host, see [Setup](#setup).
 
