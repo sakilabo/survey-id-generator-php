@@ -64,7 +64,7 @@ Each generated ID is built from a 28-character alphabet (`23456789abcdefghjknprs
 
 For example, if some distributed ID has `f` as its third character, no other distributed ID has `d` or `g` (the keys on either side of `f`) at that same position.
 
-Set the matching regex (the **ID Recognition Pattern**) as a form-validation rule, and the form will reject inputs where the user accidentally pressed an adjacent key — letting them retry instead of submitting a typo.
+Set the matching regex (the **ID Recognition Pattern**) as a form-validation rule, and the form will reject inputs where the user accidentally hits an adjacent key — letting them retry instead of submitting a typo.
 
 ### Fraud detection
 
